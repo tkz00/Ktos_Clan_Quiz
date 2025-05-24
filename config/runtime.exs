@@ -99,4 +99,10 @@ if config_env() == :prod do
   #     config :swoosh, :api_client, Swoosh.ApiClient.Hackney
   #
   # See https://hexdocs.pm/swoosh/Swoosh.html#module-installation for details.
+
+  # Configure your OpenAI API key
+  config :ktos_clan_quiz, openai_api_key: System.get_env("OPENAI_API_KEY")
+
+  # You might also want to configure the default model if you use a specific one
+  config :ktos_clan_quiz, openai_model: System.get_env("OPENAI_MODEL") || "gpt-3.5-turbo"
 end

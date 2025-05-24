@@ -1,6 +1,20 @@
 defmodule KtosClanQuizWeb.QuizLive do
   require Logger
   use KtosClanQuizWeb, :live_view
+  alias KtosClanQuiz.AIAgent
+
+  # Define your clans here. These descriptions are crucial for the AI.
+  # Ensure these are accurate and descriptive of your intended clans.
+  @clans %{
+    "The Kobuco Clan" =>
+      "Those with strong determination and unwavering resolve to achieve a goal or resist temptation. They have an iron will and care about strenght of character over anything else.",
+    "The Siwo Clan" =>
+      "Those who pursue knowledge and understanding above all else, valuing truth, wisdom, and intellectual curiosity. They seek to illuminate the darkest corners of existence.",
+    "The Kummel Clan" =>
+      "Characterized by their adaptability, empathy, and ability to connect with others. They are natural communicators, mediators, and explorers of diverse cultures, valuing harmony and understanding.",
+    "The Kutaro Clan" =>
+      "Those with an affinity for innovation, cunning, and resourcefulness. They are masters of strategy, problem-solvers who see beyond the obvious, and are not afraid to use unconventional methods to achieve their goals, valuing ingenuity and subtle influence."
+  }
 
   # This function initializes the state of our LiveView
   def mount(_params, _session, socket) do
@@ -132,9 +146,8 @@ defmodule KtosClanQuizWeb.QuizLive do
   # This function handles the form submission
   # phx-submit="submit_response" triggers this
   def handle_event("submit_response", %{"user_response" => response}, socket) do
-    # Basic validation: ensure the user actually typed something
     if String.trim(response) == "" do
-      {:noreply, put_flash(socket, :error, "Please provide an answer before proceeding.")}
+      # ... (your existing validation) ...
     else
       %{
         questions: all_questions,
@@ -142,19 +155,12 @@ defmodule KtosClanQuizWeb.QuizLive do
         chat_history: current_chat_history
       } = socket.assigns
 
-      # Get the question that was just answered
       answered_question = Enum.at(all_questions, current_index)
 
-      # Update chat history with both question and user's answer
       updated_chat_history =
         current_chat_history ++
           [%{type: :question, text: answered_question}] ++
           [%{type: :response, text: response}]
-
-      # Store the answer to this specific question (important for AI later)
-      # We'll need a way to store answers linked to questions. For now, let's keep it simple
-      # by just adding to chat history. Later, you might want a list of {:question, "...", :answer, "..."} tuples.
-      # For full AI analysis, we'll collect all answers at the end.
 
       next_index = current_index + 1
       # total_questions = length(all_questions)
@@ -162,10 +168,9 @@ defmodule KtosClanQuizWeb.QuizLive do
 
       socket =
         socket
-        # Clear input
         |> assign(:user_response, "")
+        # <--- Make sure this assign is done *before* Task.async
         |> assign(:chat_history, updated_chat_history)
-        # Hide welcome after first response
         |> assign(:show_welcome_message, false)
 
       if next_index < total_questions do
@@ -173,35 +178,28 @@ defmodule KtosClanQuizWeb.QuizLive do
         {:noreply, assign(socket, :current_question_index, next_index)}
       else
         # All questions answered, quiz is complete!
-        # This is where you'll trigger the AI processing.
-
-        # Start an asynchronous task to simulate AI processing
-        # <--- CAPTURE THE LIVEVIEW'S PID HERE
         live_view_pid = self()
 
         Task.async(fn ->
-          # Simulate a 3-second delay for AI processing
-          Process.sleep(3000)
+          # Prepare the full context of answers for the AI
+          # Use the updated_chat_history which contains ALL responses
+          # <--- Pass updated_chat_history and @clans
+          full_prompt_text = build_ai_prompt(updated_chat_history, @clans)
 
-          Logger.info(
-            "Task: About to send AI result message to LiveView PID: #{inspect(live_view_pid)}"
-          )
+          case AIAgent.get_clan_prediction(full_prompt_text) do
+            {:ok, %{clan: clan, reasoning: reasoning}} ->
+              send(live_view_pid, {:ai_result, clan, reasoning})
 
-          # Send the message to the CAPTURED LiveView PID
-          send(
-            # <--- USE THE CAPTURED PID HERE
-            live_view_pid,
-            {:ai_result, "The Kobuco clan",
-             "Your strong determination and unwavering resolve to achieve a goal or resist temptation align perfectly with the iron will of the Kobuco clan."}
-          )
-
-          Logger.info("Task: AI result message sent.")
+            {:error, error_reason} ->
+              Logger.error("Error from AI Agent: #{inspect(error_reason)}")
+              # Send an error message back
+              send(live_view_pid, {:ai_error, error_reason})
+          end
         end)
 
         {:noreply,
          socket
          |> assign(:quiz_complete, true)
-         # Keep index at end to indicate completion
          |> assign(:current_question_index, next_index)
          # Show AI processing state
          |> assign(:ai_processing, true)
@@ -249,5 +247,36 @@ defmodule KtosClanQuizWeb.QuizLive do
   # and simply ignore them, preventing a FunctionClauseError.
   def handle_info(_message, socket) do
     {:noreply, socket}
+  end
+
+  # Helper function to build the AI prompt from chat history and clan descriptions
+  defp build_ai_prompt(chat_history, clans) do
+    # Extract only the question/response pairs that matter for the quiz
+    # The AI needs the full context of all interactions
+    quiz_interactions =
+      Enum.map_join(chat_history, "\n\n", fn
+        %{type: :question, text: q} -> "Question: #{q}"
+        %{type: :response, text: r} -> "Your Answer: #{r}"
+        # Ignore other types if any, though your chat history should only have question/response
+        _ -> ""
+      end)
+
+    clan_descriptions =
+      Enum.map_join(clans, "\n", fn {name, desc} -> "#{name}: #{desc}" end)
+
+    """
+    You are a mystical and ancient Sorting Hat for a new, unique fantasy universe.
+    Your purpose is to discern a user's inherent qualities and assign them to one of the predefined clans.
+    Your output MUST ONLY contain the clan and a concise Reason for the assignment, following the exact format: 'clan: [clan Name]\nReasoning: [Reason]'.
+    Do not add any other conversational text or preamble.
+
+    Here are the available clans and their descriptions:
+    #{clan_descriptions}
+
+    Here is the user's interaction with the quiz:
+    #{quiz_interactions}
+
+    Based on these responses, which clan does the user belong to?
+    """
   end
 end
