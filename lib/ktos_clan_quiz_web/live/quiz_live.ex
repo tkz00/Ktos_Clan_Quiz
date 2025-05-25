@@ -47,27 +47,25 @@ defmodule KtosClanQuizWeb.QuizLive do
       |> assign(:ai_reasoning, nil)
       # To show loading state during AI call
       |> assign(:ai_processing, false)
-      |> assign(:show_welcome_message, true)
 
     {:ok, socket}
   end
 
-  # This function renders the HTML for our LiveView
-  # lib/my_clan_quiz_web/live/quiz_live.ex
-
   def render(assigns) do
     ~H"""
-    <div class="container mx-auto p-4 max-w-lg">
+    <div class="container mx-auto p-4">
       <h1 class="text-3xl font-bold mb-6 text-center">The Sorting Quiz</h1>
 
-      <%= if assigns.show_welcome_message do %>
-        <div class="bg-blue-100 border-l-4 border-blue-500 text-blue-700 p-4 mb-4" role="alert">
-          <p class="font-bold">Welcome, brave adventurer!</p>
-          <p>Prepare to answer questions that will reveal your true nature.</p>
-        </div>
-      <% end %>
+      <div class="bg-blue-100 border-l-4 border-blue-500 text-blue-700 p-4 mb-4" role="alert">
+        <p class="font-bold">Welcome, brave adventurer!</p>
+        <p>Prepare to answer questions that will reveal your true nature.</p>
+      </div>
 
-      <div class="chat-window bg-white shadow-md rounded-lg p-6 mb-6 h-96 overflow-y-auto flex flex-col">
+      <div
+        id="chat-window"
+        phx-hook="ChatScroll"
+        class="chat-window bg-white shadow-md rounded-lg p-6 mb-6 h-96 overflow-y-auto flex flex-col"
+      >
         <%= for item <- assigns.chat_history do %>
           <%= if item.type == :question do %>
             <div class="bg-gray-200 p-3 rounded-lg self-start my-2">
@@ -163,15 +161,13 @@ defmodule KtosClanQuizWeb.QuizLive do
           [%{type: :response, text: response}]
 
       next_index = current_index + 1
-      # total_questions = length(all_questions)
-      total_questions = 3
+      total_questions = length(all_questions)
 
       socket =
         socket
         |> assign(:user_response, "")
         # <--- Make sure this assign is done *before* Task.async
         |> assign(:chat_history, updated_chat_history)
-        |> assign(:show_welcome_message, false)
 
       if next_index < total_questions do
         # More questions left, move to next question
@@ -219,8 +215,6 @@ defmodule KtosClanQuizWeb.QuizLive do
       |> assign(:clan_result, nil)
       |> assign(:ai_reasoning, nil)
       |> assign(:ai_processing, false)
-      # Show welcome again on reset
-      |> assign(:show_welcome_message, true)
 
     {:noreply, socket}
   end
