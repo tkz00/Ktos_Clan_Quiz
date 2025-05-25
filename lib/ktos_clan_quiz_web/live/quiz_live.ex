@@ -22,6 +22,16 @@ defmodule KtosClanQuizWeb.QuizLive do
       "This clan embraced the concept of mortality and the cycle of life and death, finding profound meaning in transitions and the impermanence of existence. They are said to possess a unique understanding of the veil between worlds, guiding souls and ensuring peaceful passage."
   }
 
+  @clan_images %{
+    "Kobuco Clan" => "/images/kobuco.png",
+    "Ziwo Clan" => "/images/ziwo.png",
+    "Kummel Clan" => "/images/kummel.png",
+    "Kutaro Clan" => "/images/kutaro.png",
+    "Kundelli Clan" => "/images/kundelli.png",
+    "Kutobi Clan" => "/images/kutobi.png",
+    "Selego Clan" => "/images/selego.png"
+  }
+
   # This function initializes the state of our LiveView
   def mount(_params, _session, socket) do
     questions = [
@@ -53,6 +63,8 @@ defmodule KtosClanQuizWeb.QuizLive do
       |> assign(:ai_reasoning, nil)
       # To show loading state during AI call
       |> assign(:ai_processing, false)
+      |> assign(:show_clan_modal, false)
+      |> assign(:clan_images, @clan_images)
 
     {:ok, socket}
   end
@@ -94,10 +106,9 @@ defmodule KtosClanQuizWeb.QuizLive do
               <p>Consulting the ancient scrolls...</p>
               <div class="spinner border-t-4 border-purple-500 border-solid rounded-full w-8 h-8 mx-auto mt-2 animate-spin">
               </div>
-            <% else %>
-              <p>You belong to: **{assigns.clan_result}**</p>
-              <p class="text-sm font-normal">{assigns.ai_reasoning}</p>
             <% end %>
+            <% # Removed the direct display of clan_result and ai_reasoning here %>
+            <% # as they will be in the modal %>
           </div>
         <% else %>
           <div class="bg-gray-200 p-3 rounded-lg self-start my-2 mt-auto">
@@ -128,14 +139,42 @@ defmodule KtosClanQuizWeb.QuizLive do
         </form>
       <% end %>
 
-      <% # Display the reset button ONLY if the quiz is complete AND AI is NOT processing %>
-      <%= if assigns.quiz_complete and not assigns.ai_processing do %>
-        <button
-          phx-click="reset_quiz"
-          class="mt-4 w-full bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
-        >
-          Start New Quiz
-        </button>
+      <% # Clan Result Modal Popup %>
+      <%= if assigns.show_clan_modal and assigns.clan_result do %>
+        <div class="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4">
+          <div class="bg-white rounded-lg shadow-xl p-8 w-full max-w-md md:max-w-lg lg:max-w-xl text-center flex flex-col items-center justify-center">
+            <h2 class="text-4xl font-extrabold mb-4 text-purple-700">Congratulations!</h2>
+            <p class="text-2xl font-semibold mb-6 text-gray-800">You belong to:</p>
+
+            <h1 class="text-5xl font-extrabold mb-8 text-purple-900 border-b-4 border-purple-500 pb-2">
+              {assigns.clan_result}
+            </h1>
+
+            <% # Clan Image (dynamic based on clan_result) %>
+            <%= if assigns.clan_result && assigns.clan_images[assigns.clan_result] do %>
+              <img
+                src={assigns.clan_images[assigns.clan_result]}
+                alt={"Image for #{assigns.clan_result} Clan"}
+                class="w-32 h-32 object-cover rounded-full mb-6 border-4 border-purple-300 shadow-md"
+              />
+            <% else %>
+              <div class="w-32 h-32 bg-gray-300 rounded-full flex items-center justify-center text-gray-600 font-bold text-lg mb-6">
+                No Image
+              </div>
+            <% end %>
+
+            <p class="text-lg text-gray-700 mb-8 leading-relaxed">
+              **Reasoning:** {assigns.ai_reasoning}
+            </p>
+
+            <button
+              phx-click="reset_quiz"
+              class="bg-blue-600 text-white px-8 py-4 rounded-lg text-xl font-bold hover:bg-blue-700 focus:outline-none focus:ring-4 focus:ring-blue-500 focus:ring-opacity-50 transition duration-300 ease-in-out"
+            >
+              Start New Quiz
+            </button>
+          </div>
+        </div>
       <% end %>
     </div>
     """
@@ -167,7 +206,8 @@ defmodule KtosClanQuizWeb.QuizLive do
           [%{type: :response, text: response}]
 
       next_index = current_index + 1
-      total_questions = length(all_questions)
+      # total_questions = length(all_questions)
+      total_questions = 2
 
       socket =
         socket
@@ -221,6 +261,7 @@ defmodule KtosClanQuizWeb.QuizLive do
       |> assign(:clan_result, nil)
       |> assign(:ai_reasoning, nil)
       |> assign(:ai_processing, false)
+      |> assign(:show_clan_modal, false)
 
     {:noreply, socket}
   end
@@ -238,6 +279,7 @@ defmodule KtosClanQuizWeb.QuizLive do
       |> assign(:ai_reasoning, reasoning)
       # Stop showing the spinner
       |> assign(:ai_processing, false)
+      |> assign(:show_clan_modal, true)
       |> put_flash(:success, "Your clan has been determined!")
 
     {:noreply, socket}
