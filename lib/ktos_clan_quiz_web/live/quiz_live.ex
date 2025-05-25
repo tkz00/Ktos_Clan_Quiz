@@ -7,13 +7,19 @@ defmodule KtosClanQuizWeb.QuizLive do
   # Ensure these are accurate and descriptive of your intended clans.
   @clans %{
     "The Kobuco Clan" =>
-      "Those with strong determination and unwavering resolve to achieve a goal or resist temptation. They have an iron will and care about strenght of character over anything else.",
-    "The Siwo Clan" =>
-      "Those who pursue knowledge and understanding above all else, valuing truth, wisdom, and intellectual curiosity. They seek to illuminate the darkest corners of existence.",
+      "This clan harnessed the brutal igneous power of the Brulma constellation, becoming expert blacksmiths known for forging legendary weapons. Their members bear ritualistic burn marks and now survive by recycling metal waste to create droid parts.",
+    "The Ziwo Clan" =>
+      "Unconnected to spiritual energy and lacking tails and celestial diamonds, the Ziwo prioritize material accumulation as a measure of individual progress. Once powerful merchants, they are now largely found in casinos and are deeply indebted, with members like Rust serving as bounty hunters to repay family debts.",
     "The Kummel Clan" =>
-      "Characterized by their adaptability, empathy, and ability to connect with others. They are natural communicators, mediators, and explorers of diverse cultures, valuing harmony and understanding.",
+      "This ancestral clan channeled the energy of the Emole constellation to master the art of locating potable water from deep underground aquifers, building extensive aqueducts and pulley systems. They were also known for their funerary chants, utilizing tunnel acoustics to amplify their healing choruses.",
     "The Kutaro Clan" =>
-      "Those with an affinity for innovation, cunning, and resourcefulness. They are masters of strategy, problem-solvers who see beyond the obvious, and are not afraid to use unconventional methods to achieve their goals, valuing ingenuity and subtle influence."
+      "Drawing energy from the Ara constellation, the Kutaros became adept at high-altitude cultivation, producing food, medicinal plants, and floral arrangements despite perpetual twilight. They constructed impressive elevated structures reminiscent of floating gardens.",
+    "The Kundelli Clan" =>
+      "Channeling the energy of the Candello constellation, the Kundellis developed the ancestral K-to language and meticulously recorded their history and teachings on papyri. They constructed a secure library atop Mount Obara to safeguard their clan's secrets.",
+    "The Kutobi Clan" =>
+      "The Kutobi drew power from the Tobias constellation, embodying curiosity, vision, and ingenuity. Historically the religious and ceremonial leaders, they crafted intricate glass art and were renowned for their respected prophets, though their descendants now suffer from unsettling visions and madness.",
+    "The Selego Clan" =>
+      "This clan embraced the concept of mortality and the cycle of life and death, finding profound meaning in transitions and the impermanence of existence. They are said to possess a unique understanding of the veil between worlds, guiding souls and ensuring peaceful passage."
   }
 
   # This function initializes the state of our LiveView
