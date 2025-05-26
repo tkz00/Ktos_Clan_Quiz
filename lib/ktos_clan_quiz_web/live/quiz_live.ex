@@ -206,8 +206,7 @@ defmodule KtosClanQuizWeb.QuizLive do
           [%{type: :response, text: response}]
 
       next_index = current_index + 1
-      # total_questions = length(all_questions)
-      total_questions = 2
+      total_questions = length(all_questions)
 
       socket =
         socket
