@@ -7,6 +7,8 @@ To start your Phoenix server:
 
 Now you can visit [`localhost:4000`](http://localhost:4000) from your browser.
 
+For the openai request to be successful you need to get a key from platform.openai.com and set it as the env var `OPENAI_API_KEY`.
+
 Ready to run in production? Please [check our deployment guides](https://hexdocs.pm/phoenix/deployment.html).
 
 ## Learn more
